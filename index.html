@@ -161,13 +161,14 @@
         });
 
         const dados = await resposta.json();
+        const textoLimpo = dados.jarvis.replace(/[*#_~`]/g, '');
         
         chatBox.innerHTML = `
           <div class="user-text">Você: ${comandoVoz}</div>
-          <div class="jarvis-text">Jarvis: ${dados.jarvis}</div>
+          <div class="jarvis-text">Jarvis: ${textoLimpo}</div>
         `;
         
-        falar(dados.jarvis);
+        falar(textoLimpo);
         status.textContent = 'Resposta recebida.';
 
       } catch (erro) {
