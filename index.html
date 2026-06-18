@@ -137,6 +137,14 @@
 
     recognition.onresult = async (event) => {
       const comandoVoz = event.results[0][0].transcript;
+      let comandoProcessado = comandoVoz;
+      const comandoMinusculo = comandoVoz.toLowerCase().trim();
+
+      if (comandoMinusculo.startsWith('lembre que ')) {
+        comandoProcessado = '/lembrar ' + comandoVoz.substring(11).trim();
+      } else if (comandoMinusculo.startsWith('aprenda sobre ')) {
+        comandoProcessado = '/buscar ' + comandoVoz.substring(14).trim();
+      }
       
       chatBox.innerHTML = `
         <div class="user-text">Você: ${comandoVoz}</div>
@@ -149,7 +157,7 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ comando: comandoVoz })
+          body: JSON.stringify({ comando: comandoProcessado })
         });
 
         const dados = await resposta.json();
@@ -163,7 +171,7 @@
         status.textContent = 'Resposta recebida.';
 
       } catch (erro) {
-        chatBox.innerHTML = '<div class="jarvis-text" style="color: #ff4444;">Erro de conexão com o servidor local.</div>';
+        chatBox.innerHTML = '<div class="jarvis-text" style="color: #ff4444;">Erro de conexão com o servidor.</div>';
         status.textContent = 'Falha na comunicação.';
       }
     };
