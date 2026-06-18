@@ -144,6 +144,8 @@
         comandoProcessado = '/lembrar ' + comandoVoz.substring(11).trim();
       } else if (comandoMinusculo.startsWith('aprenda sobre ')) {
         comandoProcessado = '/buscar ' + comandoVoz.substring(14).trim();
+      } else if (comandoMinusculo.match(/^(esqueça que|esqueça sobre|esqueça de|esqueça|pare de) /)) {
+        comandoProcessado = '/esquecer ' + comandoVoz.replace(/^(esqueça que|esqueça sobre|esqueça de|esqueça|pare de) /i, '').trim();
       }
       
       chatBox.innerHTML = `
