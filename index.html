@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jarvis Interface</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #121212;
+      color: #fafafa;
+      font-family: 'Quicksand', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    
+    .container {
+      text-align: center;
+      max-width: 600px;
+      width: 90%;
+      padding: 3rem 2rem;
+      background-color: #1a1a1a;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      border: 1px solid #2a2a2a;
+    }
+
+    h1 {
+      font-family: 'Montserrat', sans-serif;
+      letter-spacing: 2px;
+      margin-bottom: 2rem;
+      font-weight: 700;
+    }
+
+    button {
+      background-color: #009929;
+      color: #fafafa;
+      border: none;
+      padding: 15px 40px;
+      font-size: 1.2rem;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      box-shadow: 0 4px 15px rgba(0, 153, 41, 0.3);
+    }
+
+    button:hover {
+      background-color: #007a21;
+      transform: translateY(-2px);
+    }
+
+    button.listening {
+      background-color: #8b0000;
+      box-shadow: 0 0 20px rgba(139, 0, 0, 0.6);
+      animation: pulse 1.5s infinite;
+    }
+
+    .status {
+      font-size: 0.9rem;
+      color: #888;
+      margin-top: 15px;
+      height: 20px;
+    }
+
+    .chat-box {
+      margin-top: 30px;
+      text-align: left;
+      background-color: #242424;
+      padding: 20px;
+      border-radius: 8px;
+      min-height: 100px;
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+
+    .user-text {
+      color: #009929;
+      font-weight: bold;
+    }
+
+    .jarvis-text {
+      color: #fafafa;
+      margin-top: 10px;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>J A R V I S</h1>
+    <button id="btnFalar">INICIAR COMANDO DE VOZ</button>
+    <div class="status" id="status">Sistemas prontos.</div>
+    
+    <div class="chat-box" id="chatBox">
+      Aguardando interação...
+    </div>
+  </div>
+
+  <script>
+    const btnFalar = document.getElementById('btnFalar');
+    const status = document.getElementById('status');
+    const chatBox = document.getElementById('chatBox');
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = 'pt-BR';
+    recognition.interimResults = false;
+
+    btnFalar.addEventListener('click', () => {
+      recognition.start();
+    });
+
+    recognition.onstart = () => {
+      btnFalar.classList.add('listening');
+      btnFalar.textContent = 'CAPTURANDO ÁUDIO...';
+      status.textContent = 'Fale agora.';
+    };
+
+    recognition.onspeechend = () => {
+      recognition.stop();
+      btnFalar.classList.remove('listening');
+      btnFalar.textContent = 'INICIAR COMANDO DE VOZ';
+      status.textContent = 'Processando com a API...';
+    };
+
+    recognition.onresult = async (event) => {
+      const comandoVoz = event.results[0][0].transcript;
+      
+      chatBox.innerHTML = `
+        <div class="user-text">Você: ${comandoVoz}</div>
+        <div class="jarvis-text">Pensando...</div>
+      `;
+
+      try {s
+        const resposta = await fetch('https://jarvis-api-xl1e.onrender.com/jarvis', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ comando: comandoVoz })
+        });
+
+        const dados = await resposta.json();
+        
+        chatBox.innerHTML = `
+          <div class="user-text">Você: ${comandoVoz}</div>
+          <div class="jarvis-text">Jarvis: ${dados.jarvis}</div>
+        `;
+        
+        falar(dados.jarvis);
+        status.textContent = 'Resposta recebida.';
+
+      } catch (erro) {
+        chatBox.innerHTML = '<div class="jarvis-text" style="color: #ff4444;">Erro de conexão com o servidor local.</div>';
+        status.textContent = 'Falha na comunicação.';
+      }
+    };
+
+    function falar(texto) {
+      const sintese = window.speechSynthesis;
+      const utterThis = new SpeechSynthesisUtterance(texto);
+      
+      utterThis.lang = 'pt-BR';
+      utterThis.rate = 1.0;
+      utterThis.pitch = 0.9;
+      
+      sintese.speak(utterThis);
+    }
+  </script>
+</body>
+</html>
